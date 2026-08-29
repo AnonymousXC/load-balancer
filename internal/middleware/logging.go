@@ -22,6 +22,7 @@ func Logging(logger *zap.Logger) Middleware {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 			wrapped := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+			h.ServeHTTP(w, r)
 			logger.Info("request",
 				zap.String("method", r.Method),
 				zap.String("path", r.URL.Path),

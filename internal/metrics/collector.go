@@ -1,9 +1,11 @@
 package metrics
 
 import (
+	"net/http"
 	"sync/atomic"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Collector struct {
@@ -40,4 +42,29 @@ func NewCollector() *Collector {
 	}
 	prometheus.MustRegister(c.requestTotal, c.requestDuration, c.activeGuage)
 	return c
+}
+
+func (c *Collector) RecordRequest(backend string, status int, dur float64) {
+	st := http.StatusText(status)
+	if st == "" {
+		st = "unknown"
+	}
+	c.requestTotal.WithLabelValues(backend, st).Inc()
+	if dur > 0 {
+		c.requestDuration.WithLabelValues(backend).Observe(dur)
+	}
+}
+
+func (c *Collector) SetActive(n int64) int64 {
+	c.activeGuage.Set(float64(n))
+	c.activeConns.Store(n)
+	return n
+}
+
+func (c *Collector) GetActiveConnections() int64 {
+	return c.activeConns.Load()
+}
+
+func (c *Collector) Handler() http.Handler {
+	return promhttp.Handler()
 }
