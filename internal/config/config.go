@@ -14,6 +14,7 @@ type Config struct {
 	Health    HealthConfig    `yaml:"health"`
 	RateLimit RateLimitConfig `yaml:"rate_limit"`
 	Strategy  string          `yaml:"strategy"`
+	Fasthttp  bool            `yaml:"fasthttp"`
 }
 
 type ServerConfig struct {
