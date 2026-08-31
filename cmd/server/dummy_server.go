@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -18,9 +19,14 @@ func main() {
 
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
+		if s := r.URL.Query().Get("sleep"); s != "" {
+			if d, err := time.ParseDuration(s + "s"); err == nil {
+				time.Sleep(d)
+			}
+		}
 		w.Write([]byte(fmt.Sprintf("PORT = %s, Server ID - %s", port, serverId)))
 	})
+
 	fmt.Println("Backend on", port)
 	http.ListenAndServe(":"+port, nil)
 }
