@@ -21,5 +21,5 @@ rate_limit:
   rps: 100
   burst: 150
 
-strategy: "round_robin"   # round_robin | least_conn | consistent_hash | weighted_random
+strategy: "least_conn"   # round_robin | least_conn | consistent_hash | weighted_random
 fasthttp: true

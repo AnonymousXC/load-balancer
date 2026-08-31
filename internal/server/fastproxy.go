@@ -49,7 +49,7 @@ func (p *FastProxy) getClient(addr string) *fasthttp.HostClient {
 func (p *FastProxy) Handler(ctx *fasthttp.RequestCtx) {
 	start := time.Now()
 
-	be := p.strategy.Select(nil)
+	be := p.strategy.Select(p.pool)
 	if be == nil {
 		p.metrics.RecordRequest("none", http.StatusServiceUnavailable, 0)
 		ctx.Error("Service Unavailable", fasthttp.StatusServiceUnavailable)
