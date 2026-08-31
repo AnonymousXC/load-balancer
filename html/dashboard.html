@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>L7 Proxy Stress Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui; background: #0a0a0f; color: #e0e0e0; padding: 2rem; }
+    h1 { color: #00ff88; margin-bottom: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .card { background: #151520; border: 1px solid #2a2a3a; border-radius: 12px; padding: 1.5rem; }
+    .card h3 { color: #8899aa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+    .big { font-size: 2.5rem; font-weight: 700; color: #fff; }
+    .good { color: #00ff88; } .bad { color: #ff4444; } .warn { color: #ffaa00; }
+    .bar { height: 8px; background: #2a2a3a; border-radius: 4px; margin-top: 0.5rem; overflow: hidden; }
+    .bar-fill { height: 100%; background: #00ff88; transition: width 0.3s; }
+    pre { font-size: 0.8rem; background: #0f0f1a; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+    button { background: #00ff88; color: #000; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 0.5rem; }
+    button:hover { opacity: 0.8; }
+    .log { height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; }
+    .log-line { padding: 2px 0; border-bottom: 1px solid #1a1a2a; }
+  </style>
+</head>
+<body>
+  <h1>🔥 L7 Proxy Stress Dashboard</h1>
+  
+  <div class="grid">
+    <div class="card">
+      <h3>Requests / Second</h3>
+      <div class="big" id="rps">0</div>
+      <div class="bar"><div class="bar-fill" id="rps-bar" style="width:0%"></div></div>
+    </div>
+    <div class="card">
+      <h3>Avg Latency</h3>
+      <div class="big" id="latency">0ms</div>
+    </div>
+    <div class="card">
+      <h3>Error Rate</h3>
+      <div class="big bad" id="errors">0%</div>
+    </div>
+    <div class="card">
+      <h3>Success Rate</h3>
+      <div class="big good" id="success">100%</div>
+    </div>
+    <div class="card">
+      <h3>Total Requests</h3>
+      <div class="big" id="total">0</div>
+    </div>
+    <div class="card">
+      <h3>Rate Limited (429)</h3>
+      <div class="big warn" id="rate-limited">0</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 1rem;">
+    <h3>Controls</h3>
+    <button onclick="startTest(50)">Light (50 req/s)</button>
+    <button onclick="startTest(200)">Medium (200 req/s)</button>
+    <button onclick="startTest(1000)">Heavy (1000 req/s)</button>
+    <button onclick="startTest(5000)">Spike (5000 req/s)</button>
+    <button onclick="stopTest()" style="background:#ff4444;color:#fff">STOP</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Backend Distribution</h3>
+      <pre id="backends">Start test to see data...</pre>
+    </div>
+    <div class="card">
+      <h3>Live Log</h3>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <script>
+    const proxyUrl = 'http://localhost:8080';
+    let running = false, interval, stats = { total: 0, errors: 0, rateLimited: 0, latencies: [] };
+    let backendHits = {};
+
+    function log(msg) {
+      const el = document.getElementById('log');
+      el.innerHTML = `<div class="log-line">[${new Date().toLocaleTimeString()}] ${msg}</div>` + el.innerHTML;
+      if (el.children.length > 50) el.lastChild.remove();
+    }
+
+    async function fireRequest() {
+      const start = performance.now();
+      try {
+        const resp = await fetch(proxyUrl, { mode: 'no-cors', cache: 'no-store' });
+        const dur = performance.now() - start;
+        stats.total++;
+        stats.latencies.push(dur);
+        if (stats.latencies.length > 100) stats.latencies.shift();
+        
+        if (resp.status === 429) stats.rateLimited++;
+        else if (!resp.ok) stats.errors++;
+        
+        // Track backend from response if possible (fallback to status)
+        backendHits['status-' + resp.status] = (backendHits['status-' + resp.status] || 0) + 1;
+      } catch (e) {
+        console.log("error", e)
+        stats.total++;
+        stats.errors++;
+      }
+    }
+
+    function updateUI() {
+      const now = Date.now();
+      const windowLatencies = stats.latencies.slice(-20);
+      const avgLat = windowLatencies.length ? (windowLatencies.reduce((a,b)=>a+b,0)/windowLatencies.length).toFixed(1) : 0;
+      const errRate = stats.total ? ((stats.errors/stats.total)*100).toFixed(1) : 0;
+      const succRate = stats.total ? (100 - errRate).toFixed(1) : 100;
+      
+      document.getElementById('rps').textContent = Math.round(stats.total / ((now - startTime)/1000));
+      document.getElementById('latency').textContent = avgLat + 'ms';
+      document.getElementById('errors').textContent = errRate + '%';
+      document.getElementById('success').textContent = succRate + '%';
+      document.getElementById('total').textContent = stats.total;
+      document.getElementById('rate-limited').textContent = stats.rateLimited;
+      
+      const rpsBar = Math.min((stats.total / 1000) * 100, 100);
+      document.getElementById('rps-bar').style.width = rpsBar + '%';
+      
+      document.getElementById('backends').textContent = JSON.stringify(backendHits, null, 2);
+    }
+
+    let startTime = Date.now();
+    function startTest(rps) {
+      if (running) stopTest();
+      running = true;
+      stats = { total: 0, errors: 0, rateLimited: 0, latencies: [] };
+      backendHits = {};
+      startTime = Date.now();
+      log(`Started stress test: ${rps} req/s`);
+      
+      const delay = 1000 / rps;
+      interval = setInterval(() => {
+        for (let i = 0; i < Math.min(rps/10, 50); i++) fireRequest();
+      }, 100);
+      
+      setInterval(updateUI, 500);
+    }
+
+    function stopTest() {
+      running = false;
+      clearInterval(interval);
+      log('Stopped stress test');
+    }
+
+    // Auto-refresh backend health every 2s
+    setInterval(async () => {
+      try {
+        const resp = await fetch('http://localhost:8081/admin/backends');
+        const data = await resp.json();
+        document.getElementById('backends').textContent = JSON.stringify(data, null, 2);
+      } catch(e) {}
+    }, 2000);
+  </script>
+</body>
+</html>

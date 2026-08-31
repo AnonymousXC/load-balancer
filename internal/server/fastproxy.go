@@ -47,6 +47,12 @@ func (p *FastProxy) getClient(addr string) *fasthttp.HostClient {
 }
 
 func (p *FastProxy) Handler(ctx *fasthttp.RequestCtx) {
+	path := string(ctx.Path())
+	if path == "/test/dashboard" {
+		fasthttp.ServeFile(ctx, "./html/dashboard.html")
+		return
+	}
+
 	start := time.Now()
 
 	be := p.strategy.Select(p.pool)

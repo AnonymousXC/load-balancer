@@ -41,6 +41,9 @@ func runNetHttp(
 	mux.Handle("/metrics", collector.Handler())
 	mux.HandleFunc("/debug/pprof/", http.DefaultServeMux.ServeHTTP)
 	mux.Handle("/", handler)
+	mux.HandleFunc("/test/dashboard", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./html/dashboard.html")
+	})
 
 	srv := &http.Server{
 		Addr:         cfg.Server.Listen,
