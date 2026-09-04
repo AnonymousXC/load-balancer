@@ -3,25 +3,24 @@ import { check, sleep } from 'k6';
 
 export const options = {
   stages: [
-    { duration: '30s', target: 50 },  // Ramp up to 50 active Virtual Users (VUs)
-    { duration: '1m',  target: 200 }, // Sustained peak load at 200 VUs
-    { duration: '30s', target: 0 },   // Ramp down to 0
+    { duration: '30s', target: 50 },
+    { duration: '1m',  target: 200 },
+    { duration: '30s', target: 0 },
   ],
   thresholds: {
-    http_req_failed: ['rate<0.01'],   // Error rate must stay below 1%
-    http_req_duration: ['p(95)<50'],  // 95% of requests must respond in < 50ms
+    http_req_failed: ['rate<0.01'],
+    http_req_duration: ['p(95)<50'],
   },
 };
 
 export default function () {
-  // Target your local machine from inside the Docker container
   const res = http.get('http://host.docker.internal:8080/'); 
   
   check(res, {
     'status is 200': (r) => r.status === 200,
   });
   
-  sleep(0.001);
+  sleep(0.01);
 }
 
 

@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 )
 
@@ -17,5 +18,20 @@ func Recovery(logger *zap.Logger) Middleware {
 			}()
 			h.ServeHTTP(w, r)
 		})
+	}
+}
+
+// fasthttp
+func FastRecovery(logger *zap.Logger) FastMiddleware {
+	return func(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+		return func(ctx *fasthttp.RequestCtx) {
+			defer func() {
+				if rec := recover(); rec != nil {
+					logger.Error("panic recovered", zap.Any("error", rec))
+					ctx.Error("Internal Server Error", fasthttp.StatusInternalServerError)
+				}
+			}()
+			next(ctx)
+		}
 	}
 }

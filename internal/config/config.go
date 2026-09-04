@@ -15,6 +15,8 @@ type Config struct {
 	RateLimit RateLimitConfig `yaml:"rate_limit"`
 	Strategy  string          `yaml:"strategy"`
 	Fasthttp  bool            `yaml:"fasthttp"`
+	TLS       TLSConfig       `yaml:"tls"`
+	Security  SecurityConfig  `yaml:"security"`
 }
 
 type ServerConfig struct {
@@ -22,6 +24,27 @@ type ServerConfig struct {
 	ReadTimeout  int    `yaml:"read_timeout"`
 	WriteTimeout int    `yaml:"write_timeout"`
 	IdleTimeout  int    `yaml:"idle_timeout"`
+	AdminListen  string `yaml:"admin_listen"`
+}
+
+type TLSConfig struct {
+	Enabled    bool   `yaml:"enabled"`
+	CertFile   string `yaml:"cert_file"`
+	KeyFile    string `yaml:"key_file"`
+	CAFile     string `yaml:"ca_file"`
+	MinVersion string `yaml:"min_version"`
+	MaxVersion string `yaml:"max_version"`
+}
+
+type SecurityConfig struct {
+	EnableCORS      bool     `yaml:"enable_cors"`
+	AllowedOrigins  []string `yaml:"allowed_origins"`
+	AllowedMethods  []string `yaml:"allowed_methods"`
+	AllowedHeaders  []string `yaml:"allowed_headers"`
+	IPWhitelist     []string `yaml:"ip_whitelist"`
+	IPBlacklist     []string `yaml:"ip_blacklist"`
+	MaxRequestSize  int64    `yaml:"max_request_size"`
+	MaxResponseSize int64    `yaml:"max_response_size"`
 }
 
 type BackendConfig struct {
@@ -64,6 +87,11 @@ func (m *Manager) load() (*Config, error) {
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("parse config: %w", err)
 	}
+
+	if err := ValidateConfig(&cfg); err != nil {
+		return nil, fmt.Errorf("validate config: %w", err)
+	}
+
 	return &cfg, nil
 }
 

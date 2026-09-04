@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/valyala/fasthttp"
 	"golang.org/x/time/rate"
 )
 
@@ -46,4 +47,18 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// fasthttp
+func FastRateLimit(rl *RateLimiter) FastMiddleware {
+	return func(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+		return func(ctx *fasthttp.RequestCtx) {
+			ip := ctx.RemoteIP().String()
+			if !rl.getLimiter(ip).Allow() {
+				ctx.Error("Too Many Requests", fasthttp.StatusTooManyRequests)
+				return
+			}
+			next(ctx)
+		}
+	}
 }

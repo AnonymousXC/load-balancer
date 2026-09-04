@@ -7,6 +7,7 @@ import (
 	"loadbalancer/internal/metrics"
 	"loadbalancer/internal/middleware"
 	"loadbalancer/internal/server"
+	"loadbalancer/internal/tracing"
 	"net/http"
 	"os"
 	"os/signal"
@@ -28,10 +29,37 @@ func runNetHttp(
 	proxy := server.NewProxy(pool, logger, strategy, collector)
 
 	var handler http.Handler = proxy
+
+	handler = tracing.RequestIDMiddleware(handler)
+
 	if cfg.RateLimit.RPS > 0 {
 		rl := middleware.NewRateLimiter(rate.Limit(cfg.RateLimit.RPS), cfg.RateLimit.Burst)
 		handler = rl.Middleware(handler)
 	}
+
+	securityConfig := middleware.DefaultSecurityConfig()
+	if cfg.Security.EnableCORS {
+		securityConfig.EnableCORS = true
+		securityConfig.AllowedOrigins = cfg.Security.AllowedOrigins
+		securityConfig.AllowedMethods = cfg.Security.AllowedMethods
+		securityConfig.AllowedHeaders = cfg.Security.AllowedHeaders
+	}
+	handler = middleware.SecurityMiddleware(securityConfig)(handler)
+
+	if len(cfg.Security.IPWhitelist) > 0 || len(cfg.Security.IPBlacklist) > 0 {
+		ipConfig := middleware.DefaultIPFilterConfig()
+		ipConfig.Whitelist = cfg.Security.IPWhitelist
+		ipConfig.Blacklist = cfg.Security.IPBlacklist
+		handler = middleware.IPFilterMiddleware(ipConfig)(handler)
+	}
+
+	if cfg.Security.MaxRequestSize > 0 || cfg.Security.MaxResponseSize > 0 {
+		sizeConfig := middleware.DefaultSizeLimitConfig()
+		sizeConfig.MaxRequestSize = cfg.Security.MaxRequestSize
+		sizeConfig.MaxResponseSize = cfg.Security.MaxResponseSize
+		handler = middleware.SizeLimitMiddleware(sizeConfig)(handler)
+	}
+
 	handler = middleware.Chain(handler,
 		middleware.Recovery(logger),
 		middleware.Logging(logger),
@@ -58,12 +86,17 @@ func runNetHttp(
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		<-sigCh
 		logger.Info("shutting down gracefully...")
+
 		shutdownCtx, done := context.WithTimeout(context.Background(), 30*time.Second)
 		defer done()
+
+		logger.Info("draining connections...")
 		if err := srv.Shutdown(shutdownCtx); err != nil {
 			logger.Error("shutdown error", zap.Error(err))
 		}
+
 		cancel()
+		logger.Info("shutdown complete")
 	}()
 
 	logger.Info("proxy listening", zap.String("addr", cfg.Server.Listen))

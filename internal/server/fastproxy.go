@@ -2,6 +2,7 @@ package server
 
 import (
 	"loadbalancer/internal/balancer"
+	"loadbalancer/internal/errors"
 	"loadbalancer/internal/metrics"
 	"net/http"
 	"time"
@@ -41,6 +42,8 @@ func (p *FastProxy) getClient(addr string) *fasthttp.HostClient {
 		WriteTimeout:                  10 * time.Second,
 		DisableHeaderNamesNormalizing: true,
 		DisablePathNormalizing:        true,
+		MaxConnDuration:               300 * time.Second,
+		Dial:                          fasthttp.DialDualStack,
 	}
 	p.clients[addr] = c
 	return c
@@ -57,7 +60,7 @@ func (p *FastProxy) Handler(ctx *fasthttp.RequestCtx) {
 
 	be := p.strategy.Select(p.pool)
 	if be == nil {
-		p.metrics.RecordRequest("none", http.StatusServiceUnavailable, 0)
+		p.metrics.RecordRequest("none", http.StatusServiceUnavailable, 0, string(ctx.Method()), len(ctx.Request.Body()), 0)
 		ctx.Error("Service Unavailable", fasthttp.StatusServiceUnavailable)
 		return
 	}
@@ -82,8 +85,11 @@ func (p *FastProxy) Handler(ctx *fasthttp.RequestCtx) {
 
 	if err := client.Do(req, resp); err != nil {
 		p.logger.Error("proxy error", zap.Error(err), zap.String("backend", be.URL.Host))
-		p.metrics.RecordRequest(be.URL.Host, http.StatusBadGateway, 0)
-		ctx.Error("Bad Gateway", fasthttp.StatusBadGateway)
+		p.metrics.RecordRequest(be.URL.Host, http.StatusBadGateway, 0, string(ctx.Method()), len(ctx.Request.Body()), 0)
+		p.metrics.RecordError(be.URL.Host, "proxy_error")
+
+		proxyErr := errors.NewBackendError(err, be.URL.Host)
+		ctx.Error(proxyErr.Message, fasthttp.StatusBadGateway)
 		return
 	}
 
@@ -91,5 +97,5 @@ func (p *FastProxy) Handler(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(resp.StatusCode())
 	ctx.SetBody(resp.Body())
 
-	p.metrics.RecordRequest(be.URL.Host, resp.StatusCode(), time.Since(start).Seconds())
+	p.metrics.RecordRequest(be.URL.Host, resp.StatusCode(), time.Since(start).Seconds(), string(ctx.Method()), len(ctx.Request.Body()), len(resp.Body()))
 }

@@ -28,10 +28,10 @@ func main() {
 	switch cfg.Strategy {
 	case "least_conn":
 		strategy = &balancer.LeastConnections{}
-	// case "consistent_hash":
-	// 	strategy = &balancer.ConsistentHash{}
-	// case "weighted_random":
-	// 	strategy = &balancer.WeightedRandom{}
+	case "consistent_hash":
+		strategy = balancer.NewConsistentHash(150)
+	case "weighted_round_robin":
+		strategy = balancer.NewWeightedRoundRobin()
 	default:
 		strategy = &balancer.RoundRobin{}
 	}
@@ -52,6 +52,7 @@ func main() {
 		time.Duration(cfg.Health.Timeout)*time.Second,
 		cfg.Health.Path,
 		logger,
+		collector,
 	)
 	go checker.Start(ctx, pool)
 

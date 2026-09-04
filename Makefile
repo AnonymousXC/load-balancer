@@ -25,7 +25,7 @@ run: build
 clean:
 	rm -f ./build/l7-proxy
 
-bench:
-	hey -z 30s -c 100 http://localhost:8080/
+clean-all: clean
+	rm -f .backend*.pid
 
 all: deps backends build run

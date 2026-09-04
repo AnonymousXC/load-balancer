@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 )
 
@@ -64,4 +65,29 @@ func (rw *responseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 		return h.Hijack()
 	}
 	return nil, nil, fmt.Errorf("hijack is not supported")
+}
+
+// fasthttp
+func FastLogging(logger *zap.Logger) FastMiddleware {
+	return func(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+		return func(ctx *fasthttp.RequestCtx) {
+			start := time.Now()
+			next(ctx)
+
+			requestID := ""
+			if ctx.UserValue("request_id") != nil {
+				requestID = ctx.UserValue("request_id").(string)
+			}
+
+			logger.Info("request",
+				zap.String("request_id", requestID),
+				zap.String("method", string(ctx.Method())),
+				zap.String("path", string(ctx.Path())),
+				zap.String("remote", ctx.RemoteIP().String()),
+				zap.Int("status", ctx.Response.StatusCode()),
+				zap.Int("bytes", len(ctx.Response.Body())),
+				zap.Duration("duration", time.Since(start)),
+			)
+		}
+	}
 }

@@ -7,6 +7,7 @@ import (
 	"loadbalancer/internal/metrics"
 	"loadbalancer/internal/middleware"
 	"loadbalancer/internal/server"
+	"loadbalancer/internal/tracing"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,6 +24,9 @@ func runFasthttp(cfg *config.Config, pool *balancer.Pool, strategy balancer.Stra
 	proxy := server.NewFastProxy(pool, strategy, logger, collector)
 
 	var handler fasthttp.RequestHandler = proxy.Handler
+
+	handler = tracing.FastRequestID(handler)
+
 	if cfg.RateLimit.RPS > 0 {
 		rl := middleware.NewRateLimiter(rate.Limit(cfg.RateLimit.RPS), cfg.RateLimit.Burst)
 		handler = middleware.FastChain(handler,
@@ -56,7 +60,7 @@ func runFasthttp(cfg *config.Config, pool *balancer.Pool, strategy balancer.Stra
 	adminMux.Handle("/metrics", promhttp.Handler())
 	adminMux.HandleFunc("/debug/pprof/", http.DefaultServeMux.ServeHTTP)
 	adminServer := &http.Server{
-		Addr:    ":8081",
+		Addr:    cfg.Server.AdminListen,
 		Handler: adminMux,
 	}
 
@@ -65,8 +69,8 @@ func runFasthttp(cfg *config.Config, pool *balancer.Pool, strategy balancer.Stra
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		<-sigCh
 		logger.Info("shutting down gracefully...")
-		cancel()
 
+		logger.Info("draining connections...")
 		shutdownCtx, done := context.WithTimeout(context.Background(), 30*time.Second)
 		defer done()
 
@@ -76,6 +80,9 @@ func runFasthttp(cfg *config.Config, pool *balancer.Pool, strategy balancer.Stra
 		if err := adminServer.Shutdown(shutdownCtx); err != nil {
 			logger.Error("admin shutdown error", zap.Error(err))
 		}
+
+		cancel()
+		logger.Info("shutdown complete")
 	}()
 
 	go func() {
