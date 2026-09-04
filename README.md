@@ -1,27 +1,21 @@
 #  L7 Load Balancer
 A high-performance, Layer 7 load balancer written in Go with advanced features for modern cloud-native applications. Designed for horizontal scaling, resilience, and observability.
 
----
-
-## Implementation Status & Feature Roadmap
 
 > **Project Status: Work in Progress**  
 > This project is actively under development. Core routing, routing algorithms, and connection pooling are fully functional, but APIs and configuration schemas may undergo breaking changes prior to the a stable release. 
 
-Features to be completed - 
-
-- Consistent hashing
-- Circuit breaker
-- Buffer Pool
-- Byte Pool
-- Retry
-- TLS
-
----
+> Features to be completed - 
+>
+> - Consistent hashing
+> - Circuit breaker
+> - Buffer Pool
+> - Byte Pool
+> - Retry
+> - TLS
 
 
 ## Key Features
-
 
 ###  Core Load Balancing
 
