@@ -59,6 +59,8 @@ func main() {
 			{"8082", "backend-1"},
 			{"8083", "backend-2"},
 			{"8084", "backend-3"},
+			{"8085", "backend-4"},
+			{"8086", "backend-5"},
 		}
 
 		for _, b := range backends {

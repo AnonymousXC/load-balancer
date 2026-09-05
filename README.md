@@ -80,7 +80,7 @@ k6 run --out web-dashboard test/loadtest.js
 
 -  **Throughput**: 100,000+ RPS on modern hardware
 
--  **Latency**: P50 < 1ms, P95 < 5ms, P99 < 10ms
+-  **Latency**: P50 < 1ms, P95 < 10ms, P99 < 30ms (on kernel unlocked system)
 
 -  **Memory**: Efficient memory usage with object pooling
 

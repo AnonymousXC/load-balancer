@@ -1,0 +1,360 @@
+# HELP go_gc_duration_seconds A summary of the wall-time pause (stop-the-world) duration in garbage collection cycles.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 0
+go_gc_duration_seconds{quantile="0.25"} 0.0010227
+go_gc_duration_seconds{quantile="0.5"} 0.0025698
+go_gc_duration_seconds{quantile="0.75"} 0.0053563
+go_gc_duration_seconds{quantile="1"} 0.0402399
+go_gc_duration_seconds_sum 0.9490982
+go_gc_duration_seconds_count 266
+# HELP go_gc_gogc_percent Heap size target percentage configured by the user, otherwise 100. This value is set by the GOGC environment variable, and the runtime/debug.SetGCPercent function. Sourced from /gc/gogc:percent.
+# TYPE go_gc_gogc_percent gauge
+go_gc_gogc_percent 100
+# HELP go_gc_gomemlimit_bytes Go runtime memory limit configured by the user, otherwise math.MaxInt64. This value is set by the GOMEMLIMIT environment variable, and the runtime/debug.SetMemoryLimit function. Sourced from /gc/gomemlimit:bytes.
+# TYPE go_gc_gomemlimit_bytes gauge
+go_gc_gomemlimit_bytes 9.223372036854776e+18
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 1520
+# HELP go_info Information about the Go environment.
+# TYPE go_info gauge
+go_info{version="go1.25.4"} 1
+# HELP go_memstats_alloc_bytes Number of bytes allocated in heap and currently in use. Equals to /memory/classes/heap/objects:bytes.
+# TYPE go_memstats_alloc_bytes gauge
+go_memstats_alloc_bytes 8.690936e+06
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated in heap until now, even if released already. Equals to /gc/heap/allocs:bytes.
+# TYPE go_memstats_alloc_bytes_total counter
+go_memstats_alloc_bytes_total 2.795051088e+09
+# HELP go_memstats_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table. Equals to /memory/classes/profiling/buckets:bytes.
+# TYPE go_memstats_buck_hash_sys_bytes gauge
+go_memstats_buck_hash_sys_bytes 1.484745e+06
+# HELP go_memstats_frees_total Total number of heap objects frees. Equals to /gc/heap/frees:objects + /gc/heap/tiny/allocs:objects.
+# TYPE go_memstats_frees_total counter
+go_memstats_frees_total 5.3852926e+07
+# HELP go_memstats_gc_sys_bytes Number of bytes used for garbage collection system metadata. Equals to /memory/classes/metadata/other:bytes.
+# TYPE go_memstats_gc_sys_bytes gauge
+go_memstats_gc_sys_bytes 3.266416e+06
+# HELP go_memstats_heap_alloc_bytes Number of heap bytes allocated and currently in use, same as go_memstats_alloc_bytes. Equals to /memory/classes/heap/objects:bytes.
+# TYPE go_memstats_heap_alloc_bytes gauge
+go_memstats_heap_alloc_bytes 8.690936e+06
+# HELP go_memstats_heap_idle_bytes Number of heap bytes waiting to be used. Equals to /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+# TYPE go_memstats_heap_idle_bytes gauge
+go_memstats_heap_idle_bytes 5.4730752e+07
+# HELP go_memstats_heap_inuse_bytes Number of heap bytes that are in use. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes
+# TYPE go_memstats_heap_inuse_bytes gauge
+go_memstats_heap_inuse_bytes 2.8532736e+07
+# HELP go_memstats_heap_objects Number of currently allocated objects. Equals to /gc/heap/objects:objects.
+# TYPE go_memstats_heap_objects gauge
+go_memstats_heap_objects 40538
+# HELP go_memstats_heap_released_bytes Number of heap bytes released to OS. Equals to /memory/classes/heap/released:bytes.
+# TYPE go_memstats_heap_released_bytes gauge
+go_memstats_heap_released_bytes 4.8013312e+07
+# HELP go_memstats_heap_sys_bytes Number of heap bytes obtained from system. Equals to /memory/classes/heap/objects:bytes + /memory/classes/heap/unused:bytes + /memory/classes/heap/released:bytes + /memory/classes/heap/free:bytes.
+# TYPE go_memstats_heap_sys_bytes gauge
+go_memstats_heap_sys_bytes 8.3263488e+07
+# HELP go_memstats_last_gc_time_seconds Number of seconds since 1970 of last garbage collection.
+# TYPE go_memstats_last_gc_time_seconds gauge
+go_memstats_last_gc_time_seconds 1.788624866422811e+09
+# HELP go_memstats_mallocs_total Total number of heap objects allocated, both live and gc-ed. Semantically a counter version for go_memstats_heap_objects gauge. Equals to /gc/heap/allocs:objects + /gc/heap/tiny/allocs:objects.
+# TYPE go_memstats_mallocs_total counter
+go_memstats_mallocs_total 5.3893464e+07
+# HELP go_memstats_mcache_inuse_bytes Number of bytes in use by mcache structures. Equals to /memory/classes/metadata/mcache/inuse:bytes.
+# TYPE go_memstats_mcache_inuse_bytes gauge
+go_memstats_mcache_inuse_bytes 18816
+# HELP go_memstats_mcache_sys_bytes Number of bytes used for mcache structures obtained from system. Equals to /memory/classes/metadata/mcache/inuse:bytes + /memory/classes/metadata/mcache/free:bytes.
+# TYPE go_memstats_mcache_sys_bytes gauge
+go_memstats_mcache_sys_bytes 30576
+# HELP go_memstats_mspan_inuse_bytes Number of bytes in use by mspan structures. Equals to /memory/classes/metadata/mspan/inuse:bytes.
+# TYPE go_memstats_mspan_inuse_bytes gauge
+go_memstats_mspan_inuse_bytes 733600
+# HELP go_memstats_mspan_sys_bytes Number of bytes used for mspan structures obtained from system. Equals to /memory/classes/metadata/mspan/inuse:bytes + /memory/classes/metadata/mspan/free:bytes.
+# TYPE go_memstats_mspan_sys_bytes gauge
+go_memstats_mspan_sys_bytes 1.27296e+06
+# HELP go_memstats_next_gc_bytes Number of heap bytes when next garbage collection will take place. Equals to /gc/heap/goal:bytes.
+# TYPE go_memstats_next_gc_bytes gauge
+go_memstats_next_gc_bytes 2.4322914e+07
+# HELP go_memstats_other_sys_bytes Number of bytes used for other system allocations. Equals to /memory/classes/other:bytes.
+# TYPE go_memstats_other_sys_bytes gauge
+go_memstats_other_sys_bytes 3.597775e+06
+# HELP go_memstats_stack_inuse_bytes Number of bytes obtained from system for stack allocator in non-CGO environments. Equals to /memory/classes/heap/stacks:bytes.
+# TYPE go_memstats_stack_inuse_bytes gauge
+go_memstats_stack_inuse_bytes 1.3205504e+07
+# HELP go_memstats_stack_sys_bytes Number of bytes obtained from system for stack allocator. Equals to /memory/classes/heap/stacks:bytes + /memory/classes/os-stacks:bytes.
+# TYPE go_memstats_stack_sys_bytes gauge
+go_memstats_stack_sys_bytes 1.3205504e+07
+# HELP go_memstats_sys_bytes Number of bytes obtained from system. Equals to /memory/classes/total:byte.
+# TYPE go_memstats_sys_bytes gauge
+go_memstats_sys_bytes 1.06121464e+08
+# HELP go_sched_gomaxprocs_threads The current runtime.GOMAXPROCS setting, or the number of operating system threads that can execute user-level Go code simultaneously. Sourced from /sched/gomaxprocs:threads.
+# TYPE go_sched_gomaxprocs_threads gauge
+go_sched_gomaxprocs_threads 16
+# HELP go_threads Number of OS threads created.
+# TYPE go_threads gauge
+go_threads 59
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 645.453125
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.6777216e+07
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 3601
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 7.0893568e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.788624567e+09
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 7.3547776e+07
+# HELP proxy_active_connections_aggregate Total number of active in-flight connections across all backends
+# TYPE proxy_active_connections_aggregate gauge
+proxy_active_connections_aggregate -23331
+# HELP proxy_backend_active_connections Current active in-flight connections per backend
+# TYPE proxy_backend_active_connections gauge
+proxy_backend_active_connections{backend="localhost:8082"} 0
+proxy_backend_active_connections{backend="localhost:8083"} 0
+proxy_backend_active_connections{backend="localhost:8084"} 0
+proxy_backend_active_connections{backend="localhost:8085"} 0
+proxy_backend_active_connections{backend="localhost:8086"} 0
+# HELP proxy_backend_consecutive_failures Current consecutive health probe failure count for backend
+# TYPE proxy_backend_consecutive_failures gauge
+proxy_backend_consecutive_failures{backend="localhost:8082"} 0
+proxy_backend_consecutive_failures{backend="localhost:8083"} 0
+proxy_backend_consecutive_failures{backend="localhost:8084"} 0
+proxy_backend_consecutive_failures{backend="localhost:8085"} 0
+proxy_backend_consecutive_failures{backend="localhost:8086"} 0
+# HELP proxy_backend_health Current health status of upstream backend (1 = healthy, 0 = unhealthy)
+# TYPE proxy_backend_health gauge
+proxy_backend_health{backend="localhost:8082"} 1
+proxy_backend_health{backend="localhost:8083"} 1
+proxy_backend_health{backend="localhost:8084"} 1
+proxy_backend_health{backend="localhost:8085"} 1
+proxy_backend_health{backend="localhost:8086"} 1
+# HELP proxy_backend_health_check_duration_seconds Latency of health check probe requests in seconds
+# TYPE proxy_backend_health_check_duration_seconds histogram
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.001"} 0
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.005"} 6
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.01"} 8
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.025"} 14
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.05"} 20
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.1"} 30
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.25"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="0.5"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="1"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="2"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8082",le="+Inf"} 31
+proxy_backend_health_check_duration_seconds_sum{backend="localhost:8082"} 1.1682225999999998
+proxy_backend_health_check_duration_seconds_count{backend="localhost:8082"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.001"} 0
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.005"} 6
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.01"} 7
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.025"} 14
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.05"} 19
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.1"} 29
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.25"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="0.5"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="1"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="2"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8083",le="+Inf"} 31
+proxy_backend_health_check_duration_seconds_sum{backend="localhost:8083"} 1.2423534
+proxy_backend_health_check_duration_seconds_count{backend="localhost:8083"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.001"} 0
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.005"} 6
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.01"} 8
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.025"} 13
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.05"} 20
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.1"} 30
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.25"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="0.5"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="1"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="2"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8084",le="+Inf"} 31
+proxy_backend_health_check_duration_seconds_sum{backend="localhost:8084"} 1.2033056
+proxy_backend_health_check_duration_seconds_count{backend="localhost:8084"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.001"} 0
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.005"} 6
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.01"} 8
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.025"} 13
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.05"} 18
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.1"} 30
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.25"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="0.5"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="1"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="2"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8085",le="+Inf"} 31
+proxy_backend_health_check_duration_seconds_sum{backend="localhost:8085"} 1.1787803000000001
+proxy_backend_health_check_duration_seconds_count{backend="localhost:8085"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.001"} 0
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.005"} 6
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.01"} 7
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.025"} 13
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.05"} 17
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.1"} 30
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.25"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="0.5"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="1"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="2"} 31
+proxy_backend_health_check_duration_seconds_bucket{backend="localhost:8086",le="+Inf"} 31
+proxy_backend_health_check_duration_seconds_sum{backend="localhost:8086"} 1.3075864000000001
+proxy_backend_health_check_duration_seconds_count{backend="localhost:8086"} 31
+# HELP proxy_bytes_out_total Total outbound response payload bytes forwarded to clients by backend
+# TYPE proxy_bytes_out_total counter
+proxy_bytes_out_total{backend="localhost:8082"} 7.969278e+07
+proxy_bytes_out_total{backend="localhost:8083"} 7.9692695e+07
+proxy_bytes_out_total{backend="localhost:8084"} 7.9692638e+07
+proxy_bytes_out_total{backend="localhost:8085"} 7.9692781e+07
+proxy_bytes_out_total{backend="localhost:8086"} 7.9692646e+07
+# HELP proxy_request_duration_seconds End-to-end request latency distribution in seconds
+# TYPE proxy_request_duration_seconds histogram
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.0005"} 935
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.001"} 26380
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.0025"} 86953
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.005"} 205621
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.01"} 405213
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.025"} 637774
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.05"} 676263
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.1"} 690781
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.25"} 692819
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="0.5"} 692819
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="1"} 692819
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="2.5"} 692819
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="5"} 692819
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="10"} 692819
+proxy_request_duration_seconds_bucket{backend="localhost:8082",status="OK",le="+Inf"} 692819
+proxy_request_duration_seconds_sum{backend="localhost:8082",status="OK"} 8014.836817400465
+proxy_request_duration_seconds_count{backend="localhost:8082",status="OK"} 692819
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.0005"} 913
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.001"} 26558
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.0025"} 87023
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.005"} 205705
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.01"} 405561
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.025"} 637604
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.05"} 676027
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.1"} 690645
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.25"} 692837
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="0.5"} 692837
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="1"} 692837
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="2.5"} 692837
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="5"} 692837
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="10"} 692837
+proxy_request_duration_seconds_bucket{backend="localhost:8083",status="OK",le="+Inf"} 692837
+proxy_request_duration_seconds_sum{backend="localhost:8083",status="OK"} 8025.978867900331
+proxy_request_duration_seconds_count{backend="localhost:8083",status="OK"} 692837
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.0005"} 934
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.001"} 26436
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.0025"} 87023
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.005"} 205687
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.01"} 405450
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.025"} 637745
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.05"} 676310
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.1"} 690743
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.25"} 692856
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="0.5"} 692856
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="1"} 692856
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="2.5"} 692856
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="5"} 692856
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="10"} 692856
+proxy_request_duration_seconds_bucket{backend="localhost:8084",status="OK",le="+Inf"} 692856
+proxy_request_duration_seconds_sum{backend="localhost:8084",status="OK"} 8018.230687800318
+proxy_request_duration_seconds_count{backend="localhost:8084",status="OK"} 692856
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.0005"} 942
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.001"} 26384
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.0025"} 86933
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.005"} 205556
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.01"} 405230
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.025"} 637688
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.05"} 676204
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.1"} 690918
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.25"} 692971
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="0.5"} 692971
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="1"} 692971
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="2.5"} 692971
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="5"} 692971
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="10"} 692971
+proxy_request_duration_seconds_bucket{backend="localhost:8085",status="OK",le="+Inf"} 692971
+proxy_request_duration_seconds_sum{backend="localhost:8085",status="OK"} 8022.731782700199
+proxy_request_duration_seconds_count{backend="localhost:8085",status="OK"} 692971
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.0005"} 900
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.001"} 26351
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.0025"} 86979
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.005"} 205505
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.01"} 405027
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.025"} 637723
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.05"} 676133
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.1"} 690754
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.25"} 692843
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="0.5"} 692843
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="1"} 692843
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="2.5"} 692843
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="5"} 692843
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="10"} 692843
+proxy_request_duration_seconds_bucket{backend="localhost:8086",status="OK",le="+Inf"} 692843
+proxy_request_duration_seconds_sum{backend="localhost:8086",status="OK"} 8022.457982200209
+proxy_request_duration_seconds_count{backend="localhost:8086",status="OK"} 692843
+# HELP proxy_requests_total Total number of HTTP requests proxied by backend, HTTP status code, and HTTP method
+# TYPE proxy_requests_total counter
+proxy_requests_total{backend="localhost:8082",code="200",method="GET",status="OK"} 705934
+proxy_requests_total{backend="localhost:8083",code="200",method="GET",status="OK"} 705933
+proxy_requests_total{backend="localhost:8084",code="200",method="GET",status="OK"} 705933
+proxy_requests_total{backend="localhost:8085",code="200",method="GET",status="OK"} 705933
+proxy_requests_total{backend="localhost:8086",code="200",method="GET",status="OK"} 705933
+# HELP proxy_response_size_bytes Outbound response payload size distribution in bytes
+# TYPE proxy_response_size_bytes histogram
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="128"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="512"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="2048"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="8192"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="32768"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="131072"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="524288"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="2.097152e+06"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8082",le="+Inf"} 705934
+proxy_response_size_bytes_sum{backend="localhost:8082"} 7.969278e+07
+proxy_response_size_bytes_count{backend="localhost:8082"} 705934
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="128"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="512"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="2048"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="8192"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="32768"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="131072"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="524288"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="2.097152e+06"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8083",le="+Inf"} 705933
+proxy_response_size_bytes_sum{backend="localhost:8083"} 7.9692695e+07
+proxy_response_size_bytes_count{backend="localhost:8083"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="128"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="512"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="2048"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="8192"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="32768"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="131072"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="524288"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="2.097152e+06"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8084",le="+Inf"} 705933
+proxy_response_size_bytes_sum{backend="localhost:8084"} 7.9692638e+07
+proxy_response_size_bytes_count{backend="localhost:8084"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="128"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="512"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="2048"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="8192"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="32768"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="131072"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="524288"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="2.097152e+06"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8085",le="+Inf"} 705933
+proxy_response_size_bytes_sum{backend="localhost:8085"} 7.9692781e+07
+proxy_response_size_bytes_count{backend="localhost:8085"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="128"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="512"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="2048"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="8192"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="32768"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="131072"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="524288"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="2.097152e+06"} 705933
+proxy_response_size_bytes_bucket{backend="localhost:8086",le="+Inf"} 705933
+proxy_response_size_bytes_sum{backend="localhost:8086"} 7.9692646e+07
+proxy_response_size_bytes_count{backend="localhost:8086"} 705933
