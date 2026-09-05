@@ -69,9 +69,10 @@ A high-performance, Layer 7 load balancer written in Go with advanced features f
 
 ###  Benchmarks
 
-Run comprehensive benchmarks using the built-in benchmark suite:
+Run comprehensive benchmarks using grafana k6:
 ```bash
 
+k6 run --out web-dashboard test/loadtest.js
 
 ```
 
@@ -146,6 +147,11 @@ health:
 strategy: "round_robin"   # round_robin | least_conn | consistent_hash | weighted_round_robin
 fasthttp: false
 
+rate_limit:
+  rps: 120
+  burst: 10
+
+
 tls:
   enabled: false
   cert_file: ""
@@ -193,7 +199,6 @@ PORT=8084  SID=3  go  run  ./cmd/server  &
 
 # Or use make
 make  run
-
 ```
 
   
@@ -340,19 +345,12 @@ go  test  ./...
 
 ```
 
-  
-
-###  Run Benchmarks
-
-```bash
-```
-
-  
 
 ###  Load Testing
 
 ```bash
 
+k6 run --out web-dashboard test/loadtest.js
 
 ```
 
