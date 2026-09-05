@@ -387,23 +387,4 @@ k6 run --out web-dashboard test/loadtest.js
 -  **Prometheus Optimization**: Optimized metric collection with buckets
 
 
-##  Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-  
-###  Development Guidelines
-
-- Follow Go best practices and idiomatic code
-- Write tests for new features
-- Update documentation as needed
-- Ensure all tests pass before submitting PR
-- Use meaningful commit messages
-
 **Built with ❤️ for high-performance, production-grade load balancing**
