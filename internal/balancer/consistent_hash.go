@@ -1,16 +1,25 @@
 package balancer
 
 import (
+	"fmt"
 	"hash/fnv"
 	"sort"
 	"sync"
+	"sync/atomic"
 )
 
+type KeyedStrategy interface {
+	Strategy
+	SelectKey(pool *Pool, key string) *Backend
+}
+
 type ConsistentHash struct {
-	virtualNodes int
-	hashRing     []uint32
-	nodeMap      map[uint32]*Backend
-	mu           sync.RWMutex
+	virtualNodes  int
+	hashRing      []uint32
+	nodeMap       map[uint32]*Backend
+	mu            sync.RWMutex
+	lastNodesHash uint64
+	counter       atomic.Uint64
 }
 
 func NewConsistentHash(virtualNodes int) *ConsistentHash {
@@ -29,41 +38,74 @@ func (ch *ConsistentHash) Select(pool *Pool) *Backend {
 		return nil
 	}
 
-	ch.mu.RLock()
-	if len(ch.hashRing) == 0 {
-		ch.mu.RUnlock()
-		ch.buildHashRing(nodes)
-		ch.mu.RLock()
-	}
-	defer ch.mu.RUnlock()
+	ch.ensureRing(nodes)
 
-	return nodes[0]
+	cnt := ch.counter.Add(1)
+	key := fmt.Sprintf("req-%d", cnt)
+	h := ch.hashString(key)
+	return ch.GetNode(h)
 }
 
-func (ch *ConsistentHash) buildHashRing(nodes []*Backend) {
+func (ch *ConsistentHash) SelectKey(pool *Pool, key string) *Backend {
+	nodes := pool.HealthyBackends()
+	if len(nodes) == 0 {
+		return nil
+	}
+
+	ch.ensureRing(nodes)
+
+	if key == "" {
+		return ch.Select(pool)
+	}
+
+	h := ch.hashString(key)
+	return ch.GetNode(h)
+}
+
+func (ch *ConsistentHash) ensureRing(nodes []*Backend) {
+	var fp uint64
+	for _, n := range nodes {
+		for _, b := range []byte(n.URL.String()) {
+			fp = fp*31 + uint64(b)
+		}
+	}
+
+	ch.mu.RLock()
+	if ch.lastNodesHash == fp && len(ch.hashRing) > 0 {
+		ch.mu.RUnlock()
+		return
+	}
+	ch.mu.RUnlock()
+
+	ch.buildHashRing(nodes, fp)
+}
+
+func (ch *ConsistentHash) buildHashRing(nodes []*Backend, fp uint64) {
 	ch.mu.Lock()
 	defer ch.mu.Unlock()
 
-	ch.hashRing = make([]uint32, 0)
-	ch.nodeMap = make(map[uint32]*Backend)
+	ch.hashRing = make([]uint32, 0, len(nodes)*ch.virtualNodes)
+	ch.nodeMap = make(map[uint32]*Backend, len(nodes)*ch.virtualNodes)
 
 	for _, node := range nodes {
 		for i := 0; i < ch.virtualNodes; i++ {
-			key := ch.hashKey(node.URL.String(), i)
-			ch.hashRing = append(ch.hashRing, key)
-			ch.nodeMap[key] = node
+			key := fmt.Sprintf("%s#%d", node.URL.String(), i)
+			h := ch.hashString(key)
+			ch.hashRing = append(ch.hashRing, h)
+			ch.nodeMap[h] = node
 		}
 	}
 
 	sort.Slice(ch.hashRing, func(i, j int) bool {
 		return ch.hashRing[i] < ch.hashRing[j]
 	})
+
+	ch.lastNodesHash = fp
 }
 
-func (ch *ConsistentHash) hashKey(node string, index int) uint32 {
+func (ch *ConsistentHash) hashString(s string) uint32 {
 	h := fnv.New32a()
-	h.Write([]byte(node))
-	h.Write([]byte(string(rune(index))))
+	h.Write([]byte(s))
 	return h.Sum32()
 }
 

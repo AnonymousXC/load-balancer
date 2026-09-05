@@ -2,12 +2,7 @@ deps:
 	go mod tidy
 
 backends:
-	@echo "Starting backends..."
-	@PORT=8082 SID=1 go run ./cmd/server & echo $$! > ./build/.backend1.pid
-	@PORT=8083 SID=2 go run ./cmd/server & echo $$! > ./build/.backend2.pid
-	@PORT=8084 SID=3 go run ./cmd/server & echo $$! > ./build/.backend3.pid
-	@sleep 1
-	@echo "Backends started"
+	go run ./cmd/server
 
 stop-backends:
 	@if [ -f .backend1.pid ]; then kill $$(cat .backend1.pid) 2>/dev/null; rm .backend1.pid; fi

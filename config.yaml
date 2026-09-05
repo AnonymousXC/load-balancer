@@ -20,7 +20,7 @@ health:
 
 
 strategy: "round_robin"   # round_robin | least_conn | consistent_hash | weighted_round_robin
-fasthttp: false
+fasthttp: true
 
 tls:
   enabled: false

@@ -1,159 +1,787 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>L7 Proxy Stress Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex L7 Load Balancer — Prometheus Observability & Resilience Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
+    :root {
+      --bg-dark: #090c15;
+      --card-bg: rgba(18, 24, 38, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover: rgba(255, 255, 255, 0.12);
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', system-ui; background: #0a0a0f; color: #e0e0e0; padding: 2rem; }
-    h1 { color: #00ff88; margin-bottom: 1rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .card { background: #151520; border: 1px solid #2a2a3a; border-radius: 12px; padding: 1.5rem; }
-    .card h3 { color: #8899aa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
-    .big { font-size: 2.5rem; font-weight: 700; color: #fff; }
-    .good { color: #00ff88; } .bad { color: #ff4444; } .warn { color: #ffaa00; }
-    .bar { height: 8px; background: #2a2a3a; border-radius: 4px; margin-top: 0.5rem; overflow: hidden; }
-    .bar-fill { height: 100%; background: #00ff88; transition: width 0.3s; }
-    pre { font-size: 0.8rem; background: #0f0f1a; padding: 1rem; border-radius: 8px; overflow-x: auto; }
-    button { background: #00ff88; color: #000; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-right: 0.5rem; }
-    button:hover { opacity: 0.8; }
-    .log { height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; }
-    .log-line { padding: 2px 0; border-bottom: 1px solid #1a1a2a; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #151c2e 0%, var(--bg-dark) 75%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 1.5rem 2rem 3rem 2rem;
+      overflow-x: hidden;
+    }
+
+    /* Glassmorphism Card Style */
+    .glass-panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-panel:hover {
+      border-color: var(--card-hover);
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-green);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .header-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 0%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .tag-info {
+      background: rgba(79, 172, 254, 0.1);
+      border: 1px solid rgba(79, 172, 254, 0.25);
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-blue);
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+      opacity: 0.7;
+    }
+    .kpi-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .kpi-val {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+    }
+    .kpi-sub {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 0.4rem;
+      font-weight: 500;
+    }
+
+    /* Charts Grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 1100px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+    .chart-card {
+      padding: 1.5rem;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .chart-container {
+      position: relative;
+      height: 240px;
+      width: 100%;
+    }
+
+    /* Control Panel & Stress Generator */
+    .control-card {
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      background: linear-gradient(145deg, rgba(20, 27, 45, 0.85), rgba(12, 16, 28, 0.95));
+    }
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+    }
+    button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      color: #050b14;
+      border: none;
+      box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(0, 242, 254, 0.45);
+      transform: translateY(-1px);
+    }
+    .btn-stop {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+    }
+    .btn-stop:hover {
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .btn-danger-ghost {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--accent-red);
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+    .btn-danger-ghost:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+    .btn-success-ghost {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-green);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .btn-success-ghost:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+
+    /* Backends Matrix */
+    .backends-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .backend-card {
+      padding: 1.5rem;
+      position: relative;
+    }
+    .backend-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .backend-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .cb-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .cb-closed { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .cb-open { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.4); animation: flash 1s infinite alternate; }
+    .cb-half-open { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.4); }
+
+    @keyframes flash {
+      from { opacity: 0.7; }
+      to { opacity: 1; }
+    }
+
+    .backend-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+    }
+    .bm-item { display: flex; flex-direction: column; }
+    .bm-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+    .bm-val { font-size: 1.1rem; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; }
+
+    .backend-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* Logs and Prometheus explorer */
+    .dual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 900px) {
+      .dual-grid { grid-template-columns: 1fr; }
+    }
+    .log-box {
+      height: 260px;
+      overflow-y: auto;
+      background: #080b12;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+    .log-entry {
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      color: #94a3b8;
+    }
+    .log-success { color: var(--accent-green); }
+    .log-warn { color: var(--accent-amber); }
+    .log-error { color: var(--accent-red); }
+    .log-cb { color: var(--accent-purple); font-weight: 600; }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
   </style>
 </head>
 <body>
-  <h1>🔥 L7 Proxy Stress Dashboard</h1>
-  
-  <div class="grid">
-    <div class="card">
-      <h3>Requests / Second</h3>
-      <div class="big" id="rps">0</div>
-      <div class="bar"><div class="bar-fill" id="rps-bar" style="width:0%"></div></div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-group">
+      <div class="badge-live"><div class="pulse-dot"></div> Telemetry Live</div>
+      <div>
+        <h1 class="header-title">⚡ Apex L7 Load Balancer</h1>
+        <p class="header-sub">High-Performance Dynamic Routing & Prometheus Observability Engine</p>
+      </div>
     </div>
-    <div class="card">
-      <h3>Avg Latency</h3>
-      <div class="big" id="latency">0ms</div>
+    <div class="header-actions">
+      <div class="tag-info" id="strategy-tag">Strategy: round_robin</div>
+      <div class="tag-info" id="uptime-tag">Uptime: 0s</div>
+      <a href="/metrics" target="_blank" style="text-decoration: none;">
+        <button class="btn-ghost" title="View Prometheus text exposition">📊 /metrics</button>
+      </a>
     </div>
-    <div class="card">
-      <h3>Error Rate</h3>
-      <div class="big bad" id="errors">0%</div>
+  </header>
+
+  <!-- Golden Signals KPI Cards -->
+  <div class="kpi-grid">
+    <div class="glass-panel kpi-card">
+      <div class="kpi-title">Throughput <span style="color: var(--accent-cyan)">⚡</span></div>
+      <div class="kpi-val" id="val-rps">0</div>
+      <div class="kpi-sub">Requests / second</div>
     </div>
-    <div class="card">
-      <h3>Success Rate</h3>
-      <div class="big good" id="success">100%</div>
+
+    <div class="glass-panel kpi-card">
+      <div class="kpi-title">Avg Latency <span style="color: var(--accent-blue)">⏱️</span></div>
+      <div class="kpi-val" id="val-latency">0.0<span style="font-size: 1.1rem; font-weight: 500;"> ms</span></div>
+      <div class="kpi-sub">P99: <span id="val-p99">0.0ms</span></div>
     </div>
-    <div class="card">
-      <h3>Total Requests</h3>
-      <div class="big" id="total">0</div>
+
+    <div class="glass-panel kpi-card">
+      <div class="kpi-title">Success Rate <span style="color: var(--accent-green)">🛡️</span></div>
+      <div class="kpi-val" id="val-success" style="color: var(--accent-green)">100%</div>
+      <div class="kpi-sub">Error rate: <span id="val-error-rate" style="color: var(--accent-red)">0%</span></div>
     </div>
-    <div class="card">
-      <h3>Rate Limited (429)</h3>
-      <div class="big warn" id="rate-limited">0</div>
+
+    <div class="glass-panel kpi-card">
+      <div class="kpi-title">Active Conns <span style="color: var(--accent-purple)">🔗</span></div>
+      <div class="kpi-val" id="val-conns">0</div>
+      <div class="kpi-sub">In-flight proxy streams</div>
+    </div>
+
+    <div class="glass-panel kpi-card">
+      <div class="kpi-title">Total Processed <span style="color: var(--accent-amber)">📦</span></div>
+      <div class="kpi-val" id="val-total">0</div>
+      <div class="kpi-sub">Total proxied requests</div>
     </div>
   </div>
 
-  <div class="card" style="margin-bottom: 1rem;">
-    <h3>Controls</h3>
-    <button onclick="startTest(50)">Light (50 req/s)</button>
-    <button onclick="startTest(200)">Medium (200 req/s)</button>
-    <button onclick="startTest(1000)">Heavy (1000 req/s)</button>
-    <button onclick="startTest(5000)">Spike (5000 req/s)</button>
-    <button onclick="stopTest()" style="background:#ff4444;color:#fff">STOP</button>
+  <!-- Traffic Control & Chaos Testing -->
+  <div class="glass-panel control-card">
+    <div class="control-row">
+      <div>
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.3rem;">🚀 Traffic Generator & Chaos Simulation</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Inject live load to observe latency percentiles, load distribution, and circuit breakers in action.</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn-ghost" onclick="startStress(50)">Light (50 rps)</button>
+        <button class="btn-ghost" onclick="startStress(250)">Medium (250 rps)</button>
+        <button class="btn-ghost" onclick="startStress(1000)">Heavy (1000 rps)</button>
+        <button class="btn-primary" onclick="startStress(3000)">⚡ Spike (3000 rps)</button>
+        <button class="btn-stop" id="btn-stop" onclick="stopStress()" style="display:none;">🛑 Stop Test</button>
+      </div>
+    </div>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <h3>Backend Distribution</h3>
-      <pre id="backends">Start test to see data...</pre>
+  <!-- Real-Time Prometheus Charts -->
+  <div class="charts-grid">
+    <div class="glass-panel chart-card">
+      <div class="card-header">
+        <div class="card-title">📈 Real-Time RPS & Throughput Stream</div>
+        <span style="font-size: 0.75rem; color: var(--text-dim);">Updated every 500ms</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="trafficChart"></canvas>
+      </div>
     </div>
-    <div class="card">
-      <h3>Live Log</h3>
-      <div class="log" id="log"></div>
+
+    <div class="glass-panel chart-card">
+      <div class="card-header">
+        <div class="card-title">🎯 Backend Traffic Distribution</div>
+        <span style="font-size: 0.75rem; color: var(--text-dim);">Load share</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="distChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upstream Backends & Circuit Breakers Matrix -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 700;">🛡️ Upstream Backend Resilience & Circuit Breaker Matrix</h2>
+    <span style="font-size: 0.8rem; color: var(--text-muted);">Automatic failure isolation & auto-recovery</span>
+  </div>
+
+  <div class="backends-grid" id="backends-container">
+    <div class="glass-panel backend-card">Loading upstream topology...</div>
+  </div>
+
+  <!-- Dual Grid: Live Stream Log & Raw Prometheus Metrics Preview -->
+  <div class="dual-grid">
+    <div class="glass-panel chart-card">
+      <div class="card-header">
+        <div class="card-title">📜 Real-Time Proxy Event Log</div>
+        <button class="btn-ghost" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="document.getElementById('live-log').innerHTML=''">Clear</button>
+      </div>
+      <div class="log-box" id="live-log"></div>
+    </div>
+
+    <div class="glass-panel chart-card">
+      <div class="card-header">
+        <div class="card-title">🔍 Prometheus Exporter Stream</div>
+        <button class="btn-ghost" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;" onclick="fetchRawMetrics()">Refresh</button>
+      </div>
+      <div class="log-box" id="raw-metrics" style="color: #6ee7b7;">Fetching metrics exposition...</div>
     </div>
   </div>
 
   <script>
-    const proxyUrl = 'http://localhost:8080';
-    let running = false, interval, stats = { total: 0, errors: 0, rateLimited: 0, latencies: [] };
-    let backendHits = {};
+    // Configuration
+    const API_BASE = window.location.origin;
+    let isStressTesting = false;
+    let stressInterval = null;
+    let totalRequestsCount = 0;
+    let errorsCount = 0;
+    let recentLatencies = [];
+    let lastRequestTime = Date.now();
+    let rpsHistory = Array(20).fill(0);
+    let labelsHistory = Array(20).fill('');
 
-    function log(msg) {
-      const el = document.getElementById('log');
-      el.innerHTML = `<div class="log-line">[${new Date().toLocaleTimeString()}] ${msg}</div>` + el.innerHTML;
-      if (el.children.length > 50) el.lastChild.remove();
+    // Setup Chart.js Charts
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+    // Traffic Line Chart
+    const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+    const trafficChart = new Chart(trafficCtx, {
+      type: 'line',
+      data: {
+        labels: labelsHistory,
+        datasets: [
+          {
+            label: 'Requests / sec',
+            data: rpsHistory,
+            borderColor: '#00f2fe',
+            backgroundColor: 'rgba(0, 242, 254, 0.1)',
+            fill: true,
+            tension: 0.35,
+            borderWidth: 2,
+            pointRadius: 2,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        scales: {
+          x: { display: false },
+          y: { 
+            beginAtZero: true,
+            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+          }
+        },
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+
+    // Distribution Doughnut Chart
+    const distCtx = document.getElementById('distChart').getContext('2d');
+    const distChart = new Chart(distCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['No Data'],
+        datasets: [{
+          data: [1],
+          backgroundColor: ['#4facfe', '#00f2fe', '#8b5cf6', '#10b981', '#f59e0b'],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+        }
+      }
+    });
+
+    function logEvent(msg, type = 'info') {
+      const logEl = document.getElementById('live-log');
+      const time = new Date().toLocaleTimeString();
+      let cssClass = '';
+      if (type === 'error') cssClass = 'log-error';
+      else if (type === 'warn') cssClass = 'log-warn';
+      else if (type === 'success') cssClass = 'log-success';
+      else if (type === 'cb') cssClass = 'log-cb';
+
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${cssClass}`;
+      entry.textContent = `[${time}] ${msg}`;
+      logEl.prepend(entry);
+      if (logEl.children.length > 60) logEl.lastChild.remove();
     }
 
-    async function fireRequest() {
-      const start = performance.now();
+    // Polling Telemetry Snapshot
+    async function updateDashboardData() {
       try {
-        const resp = await fetch(proxyUrl, { mode: 'no-cors', cache: 'no-store' });
-        const dur = performance.now() - start;
-        stats.total++;
-        stats.latencies.push(dur);
-        if (stats.latencies.length > 100) stats.latencies.shift();
-        
-        if (resp.status === 429) stats.rateLimited++;
-        else if (!resp.ok) stats.errors++;
-        
-        // Track backend from response if possible (fallback to status)
-        backendHits['status-' + resp.status] = (backendHits['status-' + resp.status] || 0) + 1;
-      } catch (e) {
-        console.log("error", e)
-        stats.total++;
-        stats.errors++;
+        const [statusRes, backendsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/status`).catch(() => null),
+          fetch(`${API_BASE}/api/backends`).catch(() => null),
+        ]);
+
+        if (statusRes && statusRes.ok) {
+          const status = await statusRes.json();
+          document.getElementById('strategy-tag').textContent = `Strategy: ${status.strategy} (${status.fasthttp ? 'fasthttp' : 'net/http'})`;
+          document.getElementById('uptime-tag').textContent = `Uptime: ${Math.round(status.uptime_seconds)}s`;
+          document.getElementById('val-conns').textContent = status.active_connections || 0;
+
+          // Update Distribution Chart
+          if (status.backend_requests && Object.keys(status.backend_requests).length > 0) {
+            const labels = Object.keys(status.backend_requests);
+            const data = Object.values(status.backend_requests);
+            distChart.data.labels = labels;
+            distChart.data.datasets[0].data = data;
+            distChart.update('none');
+          }
+        }
+
+        if (backendsRes && backendsRes.ok) {
+          const backends = await backendsRes.json();
+          renderBackends(backends);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
       }
     }
 
-    function updateUI() {
-      const now = Date.now();
-      const windowLatencies = stats.latencies.slice(-20);
-      const avgLat = windowLatencies.length ? (windowLatencies.reduce((a,b)=>a+b,0)/windowLatencies.length).toFixed(1) : 0;
-      const errRate = stats.total ? ((stats.errors/stats.total)*100).toFixed(1) : 0;
-      const succRate = stats.total ? (100 - errRate).toFixed(1) : 100;
-      
-      document.getElementById('rps').textContent = Math.round(stats.total / ((now - startTime)/1000));
-      document.getElementById('latency').textContent = avgLat + 'ms';
-      document.getElementById('errors').textContent = errRate + '%';
-      document.getElementById('success').textContent = succRate + '%';
-      document.getElementById('total').textContent = stats.total;
-      document.getElementById('rate-limited').textContent = stats.rateLimited;
-      
-      const rpsBar = Math.min((stats.total / 1000) * 100, 100);
-      document.getElementById('rps-bar').style.width = rpsBar + '%';
-      
-      document.getElementById('backends').textContent = JSON.stringify(backendHits, null, 2);
+    function renderBackends(backends) {
+      const container = document.getElementById('backends-container');
+      if (!backends || backends.length === 0) {
+        container.innerHTML = '<div class="glass-panel backend-card">No active backends registered.</div>';
+        return;
+      }
+
+      container.innerHTML = backends.map(b => {
+        let cbClass = 'cb-closed';
+        if (b.circuit_breaker_state === 'open') cbClass = 'cb-open';
+        else if (b.circuit_breaker_state === 'half-open') cbClass = 'cb-half-open';
+
+        const aliveBadge = b.alive 
+          ? `<span style="color: var(--accent-green); font-size: 0.8rem; font-weight:600;">● Online</span>`
+          : `<span style="color: var(--accent-red); font-size: 0.8rem; font-weight:600;">● Down</span>`;
+
+        return `
+          <div class="glass-panel backend-card">
+            <div class="backend-header">
+              <div class="backend-name">
+                <span>🖥️ ${b.host}</span>
+                ${aliveBadge}
+              </div>
+              <div class="cb-badge ${cbClass}">${b.circuit_breaker_state}</div>
+            </div>
+
+            <div class="backend-metrics">
+              <div class="bm-item">
+                <span class="bm-label">Weight</span>
+                <span class="bm-val">${b.weight}</span>
+              </div>
+              <div class="bm-item">
+                <span class="bm-label">Active Conns</span>
+                <span class="bm-val">${b.active_connections}</span>
+              </div>
+              <div class="bm-item">
+                <span class="bm-label">Failures</span>
+                <span class="bm-val" style="${b.failed_requests > 0 ? 'color: var(--accent-red)' : ''}">${b.failed_requests}</span>
+              </div>
+            </div>
+
+            <div class="backend-actions">
+              <button class="btn-danger-ghost" style="flex:1; font-size:0.75rem;" onclick="tripCircuit('${b.host}')">⚡ Trip Breaker</button>
+              <button class="btn-success-ghost" style="flex:1; font-size:0.75rem;" onclick="resetCircuit('${b.host}')">🔄 Reset Breaker</button>
+              <button class="btn-ghost" style="font-size:0.75rem;" title="Toggle backend health probe" onclick="toggleBackend('${b.host}')">Toggle Health</button>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
-    let startTime = Date.now();
-    function startTest(rps) {
-      if (running) stopTest();
-      running = true;
-      stats = { total: 0, errors: 0, rateLimited: 0, latencies: [] };
-      backendHits = {};
-      startTime = Date.now();
-      log(`Started stress test: ${rps} req/s`);
-      
-      const delay = 1000 / rps;
-      interval = setInterval(() => {
-        for (let i = 0; i < Math.min(rps/10, 50); i++) fireRequest();
-      }, 100);
-      
-      setInterval(updateUI, 500);
+    // Chaos Handlers
+    async function tripCircuit(host) {
+      logEvent(`Injecting Chaos: Tripping Circuit Breaker for backend ${host}`, 'cb');
+      await fetch(`${API_BASE}/api/chaos/trip?host=${encodeURIComponent(host)}`, { method: 'POST' });
+      updateDashboardData();
     }
 
-    function stopTest() {
-      running = false;
-      clearInterval(interval);
-      log('Stopped stress test');
+    async function resetCircuit(host) {
+      logEvent(`Resetting Circuit Breaker for backend ${host}`, 'success');
+      await fetch(`${API_BASE}/api/chaos/reset?host=${encodeURIComponent(host)}`, { method: 'POST' });
+      updateDashboardData();
     }
 
-    // Auto-refresh backend health every 2s
-    setInterval(async () => {
+    async function toggleBackend(host) {
+      logEvent(`Toggling health state for backend ${host}`, 'warn');
+      await fetch(`${API_BASE}/api/chaos/backend?host=${encodeURIComponent(host)}`, { method: 'POST' });
+      updateDashboardData();
+    }
+
+    // Prometheus Raw Exporter Viewer
+    async function fetchRawMetrics() {
       try {
-        const resp = await fetch('http://localhost:8081/admin/backends');
-        const data = await resp.json();
-        document.getElementById('backends').textContent = JSON.stringify(data, null, 2);
-      } catch(e) {}
-    }, 2000);
+        const res = await fetch(`${API_BASE}/metrics`);
+        const text = await res.text();
+        const lines = text.split('\n').slice(0, 35).join('\n');
+        document.getElementById('raw-metrics').textContent = lines + '\n... (truncated for preview)';
+      } catch (e) {
+        document.getElementById('raw-metrics').textContent = 'Error loading /metrics';
+      }
+    }
+
+    // Stress Testing Engine
+    let stressReqCount = 0;
+    let windowStartTime = Date.now();
+
+    async function sendStressRequest() {
+      const t0 = performance.now();
+      totalRequestsCount++;
+      stressReqCount++;
+
+      try {
+        const resp = await fetch(`${API_BASE}/?stress=true`, { cache: 'no-store' });
+        const latency = performance.now() - t0;
+        recentLatencies.push(latency);
+        if (recentLatencies.length > 200) recentLatencies.shift();
+
+        if (!resp.ok) {
+          errorsCount++;
+          if (resp.status === 503) logEvent(`503 Service Unavailable (All Circuit Breakers or Backends Open)`, 'error');
+          else if (resp.status === 429) logEvent(`429 Rate Limited by Proxy Shield`, 'warn');
+        }
+      } catch (err) {
+        errorsCount++;
+      }
+    }
+
+    function startStress(rps) {
+      if (isStressTesting) stopStress();
+      isStressTesting = true;
+      document.getElementById('btn-stop').style.display = 'inline-flex';
+      logEvent(`Started Stress Test Generator at ~${rps} req/sec`, 'success');
+
+      const batchSize = Math.max(1, Math.round(rps / 20));
+      stressInterval = setInterval(() => {
+        for (let i = 0; i < batchSize; i++) {
+          sendStressRequest();
+        }
+      }, 50);
+    }
+
+    function stopStress() {
+      isStressTesting = false;
+      clearInterval(stressInterval);
+      document.getElementById('btn-stop').style.display = 'none';
+      logEvent(`Stopped Stress Test Generator`, 'warn');
+    }
+
+    // Telemetry Refresh Loop (500ms)
+    setInterval(() => {
+      const now = Date.now();
+      const elapsedSec = (now - windowStartTime) / 1000;
+      const currentRPS = Math.round(stressReqCount / Math.max(0.5, elapsedSec));
+      stressReqCount = 0;
+      windowStartTime = now;
+
+      // Update KPIs
+      document.getElementById('val-rps').textContent = currentRPS.toLocaleString();
+      document.getElementById('val-total').textContent = totalRequestsCount.toLocaleString();
+
+      if (recentLatencies.length > 0) {
+        const avg = recentLatencies.reduce((a, b) => a + b, 0) / recentLatencies.length;
+        const sorted = [...recentLatencies].sort((a, b) => a - b);
+        const p99 = sorted[Math.floor(sorted.length * 0.99)] || sorted[sorted.length - 1];
+
+        document.getElementById('val-latency').innerHTML = `${avg.toFixed(1)}<span style="font-size: 1.1rem; font-weight: 500;"> ms</span>`;
+        document.getElementById('val-p99').textContent = `${p99.toFixed(1)}ms`;
+      }
+
+      if (totalRequestsCount > 0) {
+        const errRate = ((errorsCount / totalRequestsCount) * 100);
+        const succRate = Math.max(0, 100 - errRate);
+        document.getElementById('val-success').textContent = `${succRate.toFixed(1)}%`;
+        document.getElementById('val-error-rate').textContent = `${errRate.toFixed(1)}%`;
+      }
+
+      // Update Traffic Stream Chart
+      rpsHistory.push(currentRPS);
+      rpsHistory.shift();
+      trafficChart.data.datasets[0].data = rpsHistory;
+      trafficChart.update('none');
+
+    }, 500);
+
+    // Initial load and periodic backend updates
+    updateDashboardData();
+    fetchRawMetrics();
+    setInterval(updateDashboardData, 1500);
+    setInterval(fetchRawMetrics, 5000);
   </script>
 </body>
 </html>

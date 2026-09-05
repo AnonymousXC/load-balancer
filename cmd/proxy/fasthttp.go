@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"loadbalancer/internal/balancer"
 	"loadbalancer/internal/config"
 	"loadbalancer/internal/metrics"
@@ -14,7 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 	"golang.org/x/time/rate"
@@ -57,8 +57,67 @@ func runFasthttp(cfg *config.Config, pool *balancer.Pool, strategy balancer.Stra
 	}
 
 	adminMux := http.NewServeMux()
-	adminMux.Handle("/metrics", promhttp.Handler())
+	adminMux.Handle("/metrics", collector.Handler())
 	adminMux.HandleFunc("/debug/pprof/", http.DefaultServeMux.ServeHTTP)
+
+	dashboardHandler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		http.ServeFile(w, r, "./html/dashboard.html")
+	}
+	adminMux.HandleFunc("/dashboard", dashboardHandler)
+
+	adminMux.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		snap := collector.GetSnapshot()
+		json.NewEncoder(w).Encode(map[string]any{
+			"strategy":           cfg.Strategy,
+			"fasthttp":           cfg.Fasthttp,
+			"uptime_seconds":     snap.UptimeSeconds,
+			"active_connections": snap.ActiveConnections,
+			"status_codes":       snap.StatusCodes,
+			"backend_requests":   snap.BackendRequests,
+		})
+	})
+
+	adminMux.HandleFunc("/api/backends", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		var statuses []BackendStatusResponse
+		for _, b := range proxy.Pool().Backends() {
+			cb := proxy.CBManager().GetBreaker(b.URL.Host)
+			statuses = append(statuses, BackendStatusResponse{
+				URL:                 b.URL.String(),
+				Host:                b.URL.Host,
+				Weight:              b.Weight,
+				Alive:               b.IsAlive(),
+				ActiveConnections:   b.ActiveConnections(),
+				TotalRequests:       b.TotalRequests(),
+				FailedRequests:      b.FailedRequests(),
+				ConsecutiveFailures: b.ConsecutiveFailures(),
+				CircuitBreakerState: cb.State().String(),
+			})
+		}
+		json.NewEncoder(w).Encode(statuses)
+	})
+
+	adminMux.HandleFunc("/api/chaos/trip", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		host := r.URL.Query().Get("host")
+		cb := proxy.CBManager().GetBreaker(host)
+		cb.TripManually()
+		collector.SetCircuitBreakerState(host, 2)
+		collector.RecordCircuitBreakerTrip(host)
+		json.NewEncoder(w).Encode(map[string]any{"status": "tripped", "host": host, "state": "open"})
+	})
+
+	adminMux.HandleFunc("/api/chaos/reset", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		host := r.URL.Query().Get("host")
+		cb := proxy.CBManager().GetBreaker(host)
+		cb.ResetManually()
+		collector.SetCircuitBreakerState(host, 0)
+		json.NewEncoder(w).Encode(map[string]any{"status": "reset", "host": host, "state": "closed"})
+	})
+
 	adminServer := &http.Server{
 		Addr:    cfg.Server.AdminListen,
 		Handler: adminMux,
